@@ -27,11 +27,12 @@ if opt=='a':
     # Store the ID of the original window
     original_window = driver.current_window_handle
 
-
+    time.sleep(5)
     # Check we don't have other windows open already
     assert len(driver.window_handles) == 1
 
     # Click the link which opens in a new window
+    driver.find_element(By.XPATH,'''//*[@id="navbar-view-section"]/div/div/div[2]/div[2]/div[5]/button[1]''').click()
     
     time.sleep(5)
     # Wait for the new window or tab
