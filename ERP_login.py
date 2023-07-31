@@ -6,76 +6,88 @@ import Pass    #a dictionary used for storing credentials
 from selenium.webdriver.common.by import By
 
 
-
-
-
-opt=input('enter a for away or l for local: ')
-if opt=='a':
+def away(driver):                        
    
-    driver = webdriver.Chrome()# Open URL
-    driver.get("https://away.ethiotelecom.et")
-    #user=os.environ.get("away_account") if I have admin rights
-    #user_pass=os.environ.get("away_account_pass")   if I have admin rights
-    user=Pass.credentials.get("away_account")
-    user_pass = Pass.credentials.get("away_account_pass")
-    time.sleep(5)
-    driver.find_element(By.ID,'username').send_keys(user)
-    driver.find_element(By.ID,'credential').send_keys(user_pass)
-    time.sleep(3)
-    driver.find_element(By.ID,'login_button').click()
+   driver.get("https://away.ethiotelecom.et")               #opens the specified URL
+   
+   user=Pass.credentials.get("away_account")                #user=os.environ.get("away_account") is better if you have admin previlage on your windows machine
+   user_pass = Pass.credentials.get("away_account_pass")    #user_pass=os.environ.get("away_account_pass")
+   
+   time.sleep(5)
+   
+   driver.find_element(By.ID,'username').send_keys(user)
+   driver.find_element(By.ID,'credential').send_keys(user_pass)
+   driver.find_element(By.ID,'login_button').click()
+   
+   original_window = driver.current_window_handle            # Store the ID of the original window
+   
+   time.sleep(5)
+  
+   assert len(driver.window_handles) == 1                    # Check we don't have other windows open already
+   wait = WebDriverWait(driver, 10)
+   #This try except block is used if the element is not located after specified time limit
+   #from experience refreshing the page solves the problem
+   try:
     
-    # Store the ID of the original window
-    original_window = driver.current_window_handle
-
-    time.sleep(5)
-    # Check we don't have other windows open already
-    assert len(driver.window_handles) == 1
-
-    # Click the link which opens in a new window
-    driver.find_element(By.XPATH,'''//*[@id="navbar-view-section"]/div/div/div[2]/div[2]/div[5]/button[1]''').click()
+    wait.until(EC.presence_of_element_located((By.XPATH,'''//*[@id="navbar-view-section"]/div/div/div[2]/div[2]/div[5]/button[1]''')))
+   except:
+    driver.refresh()
+    wait.until(EC.presence_of_element_located((By.XPATH,'''//*[@id="navbar-view-section"]/div/div/div[2]/div[2]/div[5]/button[1]''')))
     
-    time.sleep(5)
-    # Wait for the new window or tab
-    wait = WebDriverWait(driver, 10)
-    wait.until(EC.number_of_windows_to_be(2))
-    time.sleep(10)
+   #this clicks a link that will open a new window 
+   driver.find_element(By.XPATH,'''//*[@id="navbar-view-section"]/div/div/div[2]/div[2]/div[5]/button[1]''').click()
+   
+   # Loop through until we find a new window handle
+   for window_handle in driver.window_handles:
+     if window_handle != original_window:
+         driver.switch_to.window(window_handle)
+         break
+   
+   ERP_LOGIN_PAGE(driver)
 
-    # Loop through until we find a new window handle
-    for window_handle in driver.window_handles:
-        if window_handle != original_window:
-            driver.switch_to.window(window_handle)
-            break
+def local_network(driver):
+   
+   driver.get("https://eterp.ethiotelecom.et")
 
-    # Wait for the new tab to finish loading content
-    #wait.until(EC.title_is("SeleniumHQ Browser Automation"))
+   #uncomment the bellow two lines if there is a security check
+   
+   #driver.find_element(By.ID,"details-button").click()
+   #driver.find_element(By.ID,"proceed-link").click()
+   
+   time.sleep(5)
+   ERP_LOGIN_PAGE(driver)
 
-    # Find an element by ID and interact with it
-    #element = driver.find_element(By.ID,"details-button")
-    #element.click()
-    #time.sleep(3)
-    #driver.find_element(By.ID,"proceed-link").click()
-    time.sleep(10)
-    driver.find_element(By.ID,"unamebean").send_keys(Pass.credentials.get("ERP_USER"))
-    driver.find_element(By.ID,"pwdbean").send_keys(Pass.credentials.get("ERP_USER_PASS"))
-    driver.find_element(By.ID,"SubmitButton").click()
-    # Setup wait for later
-    #wait = WebDriverWait(driver, 10)
+
+def ERP_LOGIN_PAGE(driver):
+   
+   wait = WebDriverWait(driver, 10)
+   #This try except block is used if the element is not located after specified time limit
+   #from experience refreshing the page solves the problem
+   try:
+      wait.until(EC.presence_of_element_located((By.ID,"unamebean")))
+   except:                                                  
+      driver.refresh()
+      wait.until(EC.presence_of_element_located((By.ID,"unamebean")))
+   driver.find_element(By.ID,"unamebean").send_keys(Pass.credentials.get("ERP_USER"))
+   driver.find_element(By.ID,"pwdbean").send_keys(Pass.credentials.get("ERP_USER_PASS"))
+   driver.find_element(By.ID,"SubmitButton").click()
 
    
+def main():
     
-else:
-    driver = webdriver.Chrome()# Open URL
-    driver.get("https://eterp.ethiotelecom.et")
+    opt=input('enter a for away or l for local: ')
+    driver=driver=webdriver.Chrome()
+    if opt=="a":
+        away(driver)
+    else:
+        local_network(driver)
+    
+    time.sleep(15)
+   
 
-
-    # Find an element by ID and interact with it
-    #element = driver.find_element(By.ID,"details-button")
-    #element.click()
-    time.sleep(3)
-    #driver.find_element(By.ID,"proceed-link").click()
-    time.sleep(10)
-    driver.find_element(By.ID,"unamebean").send_keys(Pass.credentials.get("ERP_USER"))
-    driver.find_element(By.ID,"pwdbean").send_keys(Pass.credentials.get("ERP_USER_PASS"))
-    driver.find_element(By.ID,"SubmitButton").click()
-    # Setup wait for later
+if __name__ == "__main__":
+  main()
+       
+   
+    
     
