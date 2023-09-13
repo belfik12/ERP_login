@@ -75,8 +75,8 @@ def ERP_LOGIN_PAGE(driver):
    
 def main():
     
-    opt=input('enter a for away or l for local: ')
-    driver=driver=webdriver.Chrome()
+    opt=input('enter a for out of office operation or l otherwise: ')
+    driver=webdriver.Chrome()
     if opt=="a":
         away(driver)
     else:
